@@ -8,7 +8,8 @@ import { MCloudHarvester } from './m-cloud-harvester';
 
 const DATASET_FILE_NAME = 'dataset.json';
 
-const REFRESH_RATE_IN_MS = 1000 * 600;
+const REFRESH_RATE_IN_MS = 1000 * 60 * 60; // one hour
+const HARVEST_CHECKING_RATE = 1000 * 60 * 10; // ten minutes
 
 @Injectable()
 export class FileDatasetProvider implements DatasetProvider {
@@ -21,7 +22,7 @@ export class FileDatasetProvider implements DatasetProvider {
         private harvester: MCloudHarvester,
     ) {
         this.checkDatasetActuality();
-        setInterval(() => this.checkDatasetActuality(), 1000 * 60);
+        setInterval(() => this.checkDatasetActuality(), HARVEST_CHECKING_RATE);
     }
 
     public getDatasets(searchTerm: string, distributionTypes: DistributionType[]) {
