@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
+import * as cron from 'node-cron';
 import { first } from 'rxjs/operators';
 
 import { Dataset, DistributionType } from '../shared/dataset';
@@ -7,9 +8,6 @@ import { DatasetProvider } from './dataset-provider';
 import { MCloudHarvester } from './m-cloud-harvester';
 
 const DATASET_FILE_NAME = 'dataset.json';
-
-const REFRESH_RATE_IN_MS = 1000 * 60 * 60; // one hour
-const HARVEST_CHECKING_RATE = 1000 * 60 * 10; // ten minutes
 
 @Injectable()
 export class FileDatasetProvider implements DatasetProvider {
@@ -21,8 +19,8 @@ export class FileDatasetProvider implements DatasetProvider {
     constructor(
         private harvester: MCloudHarvester,
     ) {
-        this.checkDatasetActuality();
-        setInterval(() => this.checkDatasetActuality(), HARVEST_CHECKING_RATE);
+        this.checkDatasets();
+        cron.schedule('0 0 * * * *', () => this.harvestDatasets());
     }
 
     public getDatasets(searchTerm: string, distributionTypes: DistributionType[]) {
@@ -54,29 +52,14 @@ export class FileDatasetProvider implements DatasetProvider {
         return dataset;
     }
 
-    private checkDatasetActuality() {
-        console.log(`Check dataset actuality...`);
+    private checkDatasets() {
         if (fs.existsSync(DATASET_FILE_NAME)) {
-            if (this.isUpdateTimeActual()) {
-                if (!this.datasets) {
-                    console.log(`Load datasets from file`);
-                    const rawData = fs.readFileSync(DATASET_FILE_NAME, 'utf-8');
-                    this.datasets = JSON.parse(rawData);
-                }
-            } else {
-                this.harvestDatasets();
-            }
+            console.log(`Load datasets from file`);
+            const rawData = fs.readFileSync(DATASET_FILE_NAME, 'utf-8');
+            this.datasets = JSON.parse(rawData);
+            this.setUpdateTime();
         } else {
             this.harvestDatasets();
-        }
-    }
-
-    private isUpdateTimeActual(): boolean {
-        this.setUpdateTime();
-        if (this.lastHarvestTime.getTime() > (new Date().getTime() - REFRESH_RATE_IN_MS)) {
-            return true;
-        } else {
-            return false;
         }
     }
 
