@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as cronParser from 'cron-parser';
 import * as fs from 'fs';
 import * as cron from 'node-cron';
 import { first } from 'rxjs/operators';
@@ -8,6 +9,7 @@ import { DatasetProvider } from './dataset-provider';
 import { MCloudHarvester } from './m-cloud-harvester';
 
 const DATASET_FILE_NAME = 'dataset.json';
+const CRON_TIME_HARVESTING = '0 0 0 * * *';
 
 @Injectable()
 export class FileDatasetProvider implements DatasetProvider {
@@ -20,7 +22,7 @@ export class FileDatasetProvider implements DatasetProvider {
         private harvester: MCloudHarvester,
     ) {
         this.checkDatasets();
-        cron.schedule('0 0 * * * *', () => this.harvestDatasets());
+        cron.schedule(CRON_TIME_HARVESTING, () => this.harvestDatasets());
     }
 
     public getDatasets(searchTerm: string, distributionTypes: DistributionType[]) {
@@ -54,10 +56,15 @@ export class FileDatasetProvider implements DatasetProvider {
 
     private checkDatasets() {
         if (fs.existsSync(DATASET_FILE_NAME)) {
-            console.log(`Load datasets from file`);
-            const rawData = fs.readFileSync(DATASET_FILE_NAME, 'utf-8');
-            this.datasets = JSON.parse(rawData);
-            this.setUpdateTime();
+            const lastCheck = cronParser.parseExpression(CRON_TIME_HARVESTING).prev().toDate();
+            const lastUpdate = fs.statSync(DATASET_FILE_NAME).mtime;
+            if (lastUpdate.getTime() < lastCheck.getTime()) {
+                this.harvestDatasets();
+            } else {
+                console.log(`Load datasets from file - next harvesting at ${cronParser.parseExpression(CRON_TIME_HARVESTING).next().toString()}`);
+                const rawData = fs.readFileSync(DATASET_FILE_NAME, 'utf-8');
+                this.datasets = JSON.parse(rawData);
+            }
         } else {
             this.harvestDatasets();
         }
