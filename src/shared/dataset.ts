@@ -1,29 +1,29 @@
 export enum KeywordType {
     CATEGORY = 'mCLOUD-Kategorie',
     FKZ = 'mFUND-FKZ',
-    PROJECT = 'mFUND-Projekt'
+    PROJECT = 'mFUND-Projekt',
 }
 
 export enum DistributionType {
-    ATOM = "ATOM",
+    ATOM = 'ATOM',
     CSV = 'CSV',
     GEOJSON = 'GEOJSON',
-    GML = "GML",
-    HTML = "HTML",
-    JSON = "JSON",
-    KML = "KML",
-    PDF = "PDF",
-    REST = "REST",
-    SHP = "SHP",
-    TIFF = "TIFF",
-    TSV = "TSV",
-    TXT = "TXT",
-    WFS = "WFS",
+    GML = 'GML',
+    HTML = 'HTML',
+    JSON = 'JSON',
+    KML = 'KML',
+    PDF = 'PDF',
+    REST = 'REST',
+    SHP = 'SHP',
+    TIFF = 'TIFF',
+    TSV = 'TSV',
+    TXT = 'TXT',
+    WFS = 'WFS',
     WMS = 'WMS',
     UNKNOWN = 'UNKNOWN',
-    XLS = "XLS",
-    XLSX = "XLSX",
-    XML = "XML",
+    XLS = 'XLS',
+    XLSX = 'XLSX',
+    XML = 'XML',
     ZIP = 'ZIP',
 }
 
@@ -37,6 +37,11 @@ export interface Distribution {
     type: DistributionType;
     accessURL: string;
     downloadURL: string;
+}
+
+export interface Datasets {
+    count: number;
+    data: Dataset[];
 }
 
 export interface Dataset {

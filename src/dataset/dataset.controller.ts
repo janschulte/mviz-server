@@ -1,7 +1,8 @@
 import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
 
+import { OptionalParseIntPipe } from '../pipes/optional-parse-int.pipe';
 import { DatasetProvider } from '../provider/dataset-provider';
-import { Dataset } from '../shared/dataset';
+import { Dataset, Datasets, DistributionType } from '../shared/dataset';
 
 @Controller('dataset')
 export class DatasetController {
@@ -11,9 +12,14 @@ export class DatasetController {
   ) { }
 
   @Get()
-  getDatasets(@Query('searchTerm') searchTerm, @Query('distributionType') distributionTypes): Dataset[] {
-    const distTypes = distributionTypes ? distributionTypes.split(',') : [];
-    return this.datasetProvider.getDatasets(searchTerm, distTypes);
+  getDatasets(
+    @Query('searchTerm') searchTerm: string,
+    @Query('distributionType') distributionTypes: string,
+    @Query('limit', OptionalParseIntPipe) limit: number = 10,
+    @Query('offset', OptionalParseIntPipe) offset: number = 0,
+  ): Datasets {
+    const distTypes = (distributionTypes ? distributionTypes.split(',') : []) as DistributionType[];
+    return this.datasetProvider.getDatasets(searchTerm, distTypes, limit, offset);
   }
 
   @Get(':id')

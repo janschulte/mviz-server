@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as cron from 'node-cron';
 import { first } from 'rxjs/operators';
 
-import { Dataset, DistributionType } from '../shared/dataset';
+import { Dataset, Datasets, DistributionType } from '../shared/dataset';
 import { DatasetProvider } from './dataset-provider';
 import { MCloudHarvester } from './m-cloud-harvester';
 
@@ -25,7 +25,7 @@ export class FileDatasetProvider implements DatasetProvider {
         cron.schedule(CRON_TIME_HARVESTING, () => this.harvestDatasets());
     }
 
-    public getDatasets(searchTerm: string, distributionTypes: DistributionType[]) {
+    public getDatasets(searchTerm: string, distributionTypes: DistributionType[], limit: number, offset: number): Datasets {
         let filteredSet = this.datasets;
         if (searchTerm) {
             filteredSet = filteredSet.filter(
@@ -42,7 +42,10 @@ export class FileDatasetProvider implements DatasetProvider {
                 return !!match;
             });
         }
-        return filteredSet;
+        return {
+            count: filteredSet.length,
+            data: filteredSet.slice(offset, offset + limit),
+        };
     }
 
     public getLastHarvestTime(): Date {
