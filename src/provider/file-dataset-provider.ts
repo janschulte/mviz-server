@@ -66,6 +66,7 @@ export class FileDatasetProvider implements DatasetProvider {
             } else {
                 console.log(`Load datasets from file - next harvesting at ${cronParser.parseExpression(CRON_TIME_HARVESTING).next().toString()}`);
                 const rawData = fs.readFileSync(DATASET_FILE_NAME, 'utf-8');
+                this.setUpdateTime();
                 this.datasets = JSON.parse(rawData);
             }
         } else {
